@@ -1,212 +1,186 @@
-import React, { useState } from 'react';
-import { Task, Priority } from '../types/task';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Select } from './ui/select';
-import { Checkbox } from './ui/checkbox';
-import { Trash2, GripVertical, Edit2, Check, X, Calendar, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Task, Priority } from '../lib/types';
+import { Draggable } from '@hello-pangea/dnd';
 import { format } from 'date-fns';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { Trash2, GripVertical, Calendar, Edit2, Check, X } from 'lucide-react';
 
 interface TaskItemProps {
   task: Task;
-  onToggleComplete: (id: string) => void;
-  onUpdate: (id: string, updates: Partial<Task>) => void;
+  index: number;
+  onUpdate: (task: Task) => void;
   onDelete: (id: string) => void;
+  onToggleComplete: (id: string) => void;
   isSelected: boolean;
-  onSelect: (id: string, checked: boolean) => void;
+  onToggleSelect: (id: string) => void;
 }
 
-export function TaskItem({ task, onToggleComplete, onUpdate, onDelete, isSelected, onSelect }: TaskItemProps) {
+const priorityColors = {
+  low: 'bg-blue-100 text-blue-700 border-blue-300',
+  medium: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+  high: 'bg-red-100 text-red-700 border-red-300',
+};
+
+export function TaskItem({ 
+  task, 
+  index, 
+  onUpdate, 
+  onDelete, 
+  onToggleComplete,
+  isSelected,
+  onToggleSelect 
+}: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(task.title);
-  const [editDescription, setEditDescription] = useState(task.description);
-  const [editDueDate, setEditDueDate] = useState(task.dueDate);
-  const [editPriority, setEditPriority] = useState(task.priority);
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const [editedTask, setEditedTask] = useState(task);
 
   const handleSave = () => {
-    if (editTitle.trim()) {
-      onUpdate(task.id, {
-        title: editTitle,
-        description: editDescription,
-        dueDate: editDueDate,
-        priority: editPriority,
-      });
+    if (editedTask.title.trim()) {
+      onUpdate(editedTask);
       setIsEditing(false);
     }
   };
 
   const handleCancel = () => {
-    setEditTitle(task.title);
-    setEditDescription(task.description);
-    setEditDueDate(task.dueDate);
-    setEditPriority(task.priority);
+    setEditedTask(task);
     setIsEditing(false);
   };
 
-  const getPriorityColor = (priority: Priority) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-700 border-red-300';
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-      case 'low': return 'bg-green-100 text-green-700 border-green-300';
-    }
-  };
-
-  const getPriorityIcon = (priority: Priority) => {
-    if (priority === 'high') {
-      return <AlertCircle className="w-4 h-4" />;
-    }
-    return null;
-  };
-
-  if (isEditing) {
-    return (
-      <div ref={setNodeRef} style={style} className="bg-white rounded-lg border border-blue-500 p-4 shadow-md">
-        <div className="space-y-3">
-          <Input
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            placeholder="Task title"
-            autoFocus
-          />
-          <Textarea
-            value={editDescription}
-            onChange={(e) => setEditDescription(e.target.value)}
-            placeholder="Description"
-            rows={2}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              type="date"
-              value={editDueDate}
-              onChange={(e) => setEditDueDate(e.target.value)}
-            />
-            <Select
-              value={editPriority}
-              onChange={(e) => setEditPriority(e.target.value as Priority)}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </Select>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
-              <X className="w-4 h-4 mr-1" />
-              Cancel
-            </Button>
-            <Button type="button" size="sm" onClick={handleSave}>
-              <Check className="w-4 h-4 mr-1" />
-              Save
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-200 ${
-        task.completed ? 'opacity-60' : ''
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            checked={isSelected}
-            onChange={(e) => onSelect(task.id, e.target.checked)}
-            className="mt-1"
-          />
-          <button
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 mt-1"
-          >
-            <GripVertical className="w-5 h-5" />
-          </button>
-        </div>
+    <Draggable draggableId={task.id} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className={`bg-white rounded-lg border-2 p-4 mb-3 transition-all duration-200 ${
+            snapshot.isDragging 
+              ? 'shadow-2xl border-blue-400 scale-105' 
+              : 'shadow-sm hover:shadow-md border-gray-200'
+          } ${task.completed ? 'opacity-60' : ''} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+        >
+          <div className="flex items-start gap-3">
+            {/* Drag Handle */}
+            <div
+              {...provided.dragHandleProps}
+              className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+            >
+              <GripVertical size={20} />
+            </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 mb-2">
-            <Checkbox
+            {/* Checkbox */}
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => onToggleSelect(task.id)}
+              className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+
+            {/* Complete Toggle */}
+            <input
+              type="checkbox"
               checked={task.completed}
               onChange={() => onToggleComplete(task.id)}
+              className="mt-1 w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer transition-all"
             />
+
+            {/* Task Content */}
             <div className="flex-1 min-w-0">
-              <h3
-                className={`text-base font-medium text-gray-900 break-words cursor-pointer hover:text-blue-600 transition-colors ${
-                  task.completed ? 'line-through text-gray-500' : ''
-                }`}
-                onClick={() => setIsEditing(true)}
-              >
-                {task.title}
-              </h3>
-              {task.description && (
-                <p
-                  className={`text-sm text-gray-600 mt-1 break-words cursor-pointer hover:text-gray-900 ${
-                    task.completed ? 'line-through' : ''
-                  }`}
-                  onClick={() => setIsEditing(true)}
-                >
-                  {task.description}
-                </p>
+              {isEditing ? (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={editedTask.title}
+                    onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Task title"
+                    autoFocus
+                  />
+                  <textarea
+                    value={editedTask.description}
+                    onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder="Description"
+                    rows={2}
+                  />
+                  <div className="flex gap-3 flex-wrap">
+                    <input
+                      type="date"
+                      value={editedTask.dueDate}
+                      onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <select
+                      value={editedTask.priority}
+                      onChange={(e) => setEditedTask({ ...editedTask, priority: e.target.value as Priority })}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="low">Low Priority</option>
+                      <option value="medium">Medium Priority</option>
+                      <option value="high">High Priority</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSave}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                    >
+                      <Check size={16} />
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
+                    >
+                      <X size={16} />
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div onClick={() => !task.completed && setIsEditing(true)} className="cursor-pointer">
+                  <h3 className={`text-lg font-semibold mb-1 ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                    {task.title}
+                  </h3>
+                  {task.description && (
+                    <p className={`text-sm mb-2 ${task.completed ? 'line-through text-gray-400' : 'text-gray-600'}`}>
+                      {task.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className={`text-xs px-2 py-1 rounded-full border ${priorityColors[task.priority]}`}>
+                      {task.priority.toUpperCase()}
+                    </span>
+                    {task.dueDate && (
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <Calendar size={14} />
+                        {format(new Date(task.dueDate), 'MMM dd, yyyy')}
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-2 ml-6">
-            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(task.priority)}`}>
-              {getPriorityIcon(task.priority)}
-              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-            </span>
-            {task.dueDate && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
-                <Calendar className="w-3 h-3" />
-                {format(new Date(task.dueDate), 'MMM d, yyyy')}
-              </span>
+            {/* Actions */}
+            {!isEditing && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Edit task"
+                >
+                  <Edit2 size={18} />
+                </button>
+                <button
+                  onClick={() => onDelete(task.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Delete task"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             )}
           </div>
         </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsEditing(true)}
-            className="hover:bg-blue-50 hover:text-blue-600"
-          >
-            <Edit2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(task.id)}
-            className="hover:bg-red-50 hover:text-red-600"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
+      )}
+    </Draggable>
   );
 }

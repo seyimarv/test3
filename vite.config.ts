@@ -12,6 +12,10 @@ export default defineConfig({
   },
   server: {
     host: true,
-    allowedHosts: ["daytona.io", "shipper.now"],
+    strictPort: true,
+    allowedHosts: ["daytona.io", "shipper.now", "localhost", ".localhost"],
+    hmr: {
+      clientPort: undefined,
+    },
   },
 });

@@ -1,89 +1,37 @@
-import { Button } from './ui/button';
 import { CheckCheck, Trash2 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from './ui/alert-dialog';
-import { useState } from 'react';
 
 interface BulkActionsProps {
   selectedCount: number;
-  onMarkComplete: () => void;
-  onDelete: () => void;
-  onClearSelection: () => void;
+  onCompleteSelected: () => void;
+  onDeleteSelected: () => void;
 }
 
-export function BulkActions({
-  selectedCount,
-  onMarkComplete,
-  onDelete,
-  onClearSelection,
-}: BulkActionsProps) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
+export function BulkActions({ selectedCount, onCompleteSelected, onDeleteSelected }: BulkActionsProps) {
   if (selectedCount === 0) return null;
 
   return (
-    <>
-      <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-        <span className="text-sm font-medium">
-          {selectedCount} task{selectedCount !== 1 ? 's' : ''} selected
-        </span>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onMarkComplete}
-          >
-            <CheckCheck className="mr-2 h-4 w-4" />
-            Mark Complete
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onClearSelection}
-          >
-            Clear
-          </Button>
-        </div>
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white rounded-lg shadow-2xl px-6 py-4 flex items-center gap-6 z-50 animate-slide-up">
+      <span className="font-semibold">
+        {selectedCount} task{selectedCount !== 1 ? 's' : ''} selected
+      </span>
+      
+      <div className="flex gap-3">
+        <button
+          onClick={onCompleteSelected}
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+        >
+          <CheckCheck size={18} />
+          Mark Complete
+        </button>
+        
+        <button
+          onClick={onDeleteSelected}
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+        >
+          <Trash2 size={18} />
+          Delete
+        </button>
       </div>
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Selected Tasks</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete {selectedCount} task{selectedCount !== 1 ? 's' : ''}? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                onDelete();
-                setShowDeleteDialog(false);
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    </div>
   );
 }

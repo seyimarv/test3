@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
-import { Priority } from '../types/task';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Select } from './ui/select';
+import { useState } from 'react';
+import { Task, Priority } from '../lib/types';
 import { Plus } from 'lucide-react';
 
 interface AddTaskFormProps {
-  onAddTask: (title: string, description: string, dueDate: string, priority: Priority) => void;
+  onAdd: (task: Omit<Task, 'id' | 'createdAt'>) => void;
 }
 
-export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
+export function AddTaskForm({ onAdd }: AddTaskFormProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -20,7 +16,13 @@ export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
-      onAddTask(title, description, dueDate, priority);
+      onAdd({
+        title: title.trim(),
+        description: description.trim(),
+        dueDate,
+        priority,
+        completed: false,
+      });
       setTitle('');
       setDescription('');
       setDueDate('');
@@ -33,64 +35,84 @@ export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
+        className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
       >
-        <Plus className="w-5 h-5" />
-        <span className="font-medium">Add New Task</span>
+        <Plus size={24} />
+        <span className="text-lg font-semibold">Add New Task</span>
       </button>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-300 p-6 shadow-sm">
+    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg border-2 border-blue-200 p-6 mb-6">
+      <h3 className="text-xl font-bold text-gray-900 mb-4">Create New Task</h3>
       <div className="space-y-4">
         <div>
-          <Input
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Title *
+          </label>
+          <input
             type="text"
-            placeholder="Task title *"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            placeholder="Enter task title..."
             autoFocus
             required
           />
         </div>
-        
+
         <div>
-          <Textarea
-            placeholder="Description (optional)"
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description
+          </label>
+          <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+            placeholder="Add task details..."
             rows={3}
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-            <Input
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Due Date
+            </label>
+            <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-            <Select
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as Priority)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </Select>
+              <option value="low">Low Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="high">High Priority</option>
+            </select>
           </div>
         </div>
 
-        <div className="flex gap-2 justify-end">
-          <Button
+        <div className="flex gap-3 pt-2">
+          <button
+            type="submit"
+            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+          >
+            Add Task
+          </button>
+          <button
             type="button"
-            variant="outline"
             onClick={() => {
               setIsExpanded(false);
               setTitle('');
@@ -98,13 +120,10 @@ export function AddTaskForm({ onAddTask }: AddTaskFormProps) {
               setDueDate('');
               setPriority('medium');
             }}
+            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
           >
             Cancel
-          </Button>
-          <Button type="submit">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Task
-          </Button>
+          </button>
         </div>
       </div>
     </form>

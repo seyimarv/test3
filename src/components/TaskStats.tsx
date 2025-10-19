@@ -1,6 +1,5 @@
-import React from 'react';
-import { Task } from '../types/task';
-import { ListTodo, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { Task } from '../lib/types';
+import { CheckCircle2, Circle, ListTodo } from 'lucide-react';
 
 interface TaskStatsProps {
   tasks: Task[];
@@ -10,55 +9,36 @@ export function TaskStats({ tasks }: TaskStatsProps) {
   const total = tasks.length;
   const completed = tasks.filter(t => t.completed).length;
   const active = total - completed;
-  const highPriority = tasks.filter(t => t.priority === 'high' && !t.completed).length;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-200">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
-            <ListTodo className="w-5 h-5 text-blue-600" />
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Total Tasks</p>
-            <p className="text-2xl font-bold text-gray-900">{total}</p>
+            <p className="text-blue-100 text-sm font-medium mb-1">Total Tasks</p>
+            <p className="text-4xl font-bold">{total}</p>
           </div>
+          <ListTodo size={48} className="text-blue-200 opacity-80" />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-200">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-yellow-100">
-            <Circle className="w-5 h-5 text-yellow-600" />
-          </div>
+      <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Active</p>
-            <p className="text-2xl font-bold text-gray-900">{active}</p>
+            <p className="text-green-100 text-sm font-medium mb-1">Completed</p>
+            <p className="text-4xl font-bold">{completed}</p>
           </div>
+          <CheckCircle2 size={48} className="text-green-200 opacity-80" />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-200">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-          </div>
+      <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Completed</p>
-            <p className="text-2xl font-bold text-gray-900">{completed}</p>
+            <p className="text-orange-100 text-sm font-medium mb-1">Active</p>
+            <p className="text-4xl font-bold">{active}</p>
           </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-200">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">High Priority</p>
-            <p className="text-2xl font-bold text-gray-900">{highPriority}</p>
-          </div>
+          <Circle size={48} className="text-orange-200 opacity-80" />
         </div>
       </div>
     </div>
